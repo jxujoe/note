@@ -1,0 +1,70 @@
+﻿<!DOCTYPE html>
+
+<html lang="zh" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport"
+    content="width=device-width,initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>离线本地文本存储</title>
+  <!-- <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.min.js"></script> -->
+  <script src="js/jquery-3.5.1.min.js"></script>
+  <script src="js/vue.min.js"></script>
+  <script src="js/base64.js"></script>
+  <script src="js/linq.min.js"></script>
+</head>
+<style>
+  html {
+    background-color: #EDEDED;
+    color: #000000;
+    font-family: "Lucida Console", "Courier New", monospace;
+  }
+
+  .item {
+    background-color: white;
+    border-radius: 5px;
+    margin: 0.2cm;
+    padding: 5px;
+    /* height: 150px; */
+  }
+
+  .more {
+    /* min-height: 150px; */
+    height: auto;
+  }
+
+  .text {
+    word-break: break-all;
+    width: 95%;
+    white-space: pre-wrap;
+  }
+
+  .other {
+    font-size: small;
+    text-align: end;
+  }
+
+  .title {
+    height: 20%;
+    margin: 3px;
+    font-size: 1.5em;
+  }
+</style>
+
+<body>
+  <div>测试部署</div>
+  <script type="text/javascript">
+
+
+
+    function listfilter(SaveObjList, SearchValue) {
+      var list = SaveObjList.filter(value => value.Text.indexOf(SearchValue) > -1 || value.Title.indexOf(SearchValue) > -1);
+
+      return list;
+    }
+
+  </script>
+</body>
+
+</html>

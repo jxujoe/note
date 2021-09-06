@@ -53,8 +53,313 @@
 </style>
 
 <body>
-  <div>测试部署</div>
+  <div id="app" @touchstart='touchstart' @touchmove='touchmove' style="height: 100vh">
+    {{Test}}
+    <div style="text-align: end;">
+      {{Info}} [{{SaveObjListLen}}条数据]
+      <!-- <input type="button" v-on:click="window.location.href='Add.html';" value="添加" /> -->
+      <input type="button" v-on:click="Refresh" value="刷新" />
+      <input type="button" v-on:click="Set" value="添加" />
+    </div>
+    <div class="Set">
+      <div class="item">
+        <div class="title"> 设置</div>
+        <p> <a>项目名称</a><input type="text" placeholder="项目名称" v-model="ProjectName" /></p>
+        <p> <a>项目密码</a><input type="text" placeholder="加密密码" v-model=" Password" /></p>
+        <hr>
+        <div>标题 <input type="text" placeholder="标题" id="title" autocomplete="off" v-model="Title"></div>
+        <div>内容
+          <textarea id="text1" name="Text1" cols="40" rows="5" v-model="Text" placeholder="内容"
+            style="width: 97%;"></textarea></div>
+        <diV style="text-align: end;"> <Button v-on:click="Save()">存储</Button></diV>
+      </div>
+    </div>
+
+    <div class="Search">
+      <div class="item">
+        <div class="title1">搜索 <input type="text" v-model=" Search" placeholder="标题&内容" id="title" autocomplete="off">
+          {{SearchListLen}}</div>
+      </div>
+      <div class="SaveObjList">
+        <div class="item itemlist " v-for="(item,i) in SaveObjList">
+
+          <div class="title"> {{(item.Title) }}</div>
+          <span class="text text_notmore">{{fontNumber(item.Text,30)}}</span>
+          <div class="text text_more" v-bind:id="item.编号" @dblclick="GetMore()">
+            <div>{{item.Text}}</div>
+
+          </div>
+          <hr>
+          <div class="other"><span v-bind:id="i" @click="DelInfo()" style="margin-left:10px">删除</span>[{{i+1}}]<span
+              style="margin-left:10px">{{ item.Time }} </span></div>
+
+          <div style="text-align:right">
+            <a v-bind:id="item.编号" class="morebtn" @click="GetMore()">详情</a>
+          </div>
+        </div>
+      </div>
+      <div class="SearchList"></div>
+      <div class="item itemlist " v-for="(item,i) in SearchList">
+
+        <div class="title"> {{(item.Title) }}</div>
+        <span class="text text_notmore">{{fontNumber(item.Text,30)}}</span>
+        <div class="text text_more" v-bind:id="item.编号" @dblclick="GetMore()">
+          <div>{{item.Text}}</div>
+
+        </div>
+        <hr>
+        <div class="other"><span v-bind:id="i" @click="DelInfo()" style="margin-left:10px">删除</span>[{{i+1}}]<span
+            style="margin-left:10px">{{ item.Time }} </span></div>
+
+        <div style="text-align:right">
+          <a v-bind:id="item.编号" class="morebtn" @click="GetMore()">详情</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
   <script type="text/javascript">
+
+    Date.prototype.format = function (fmt) {
+      var o = {
+        "M+": this.getMonth() + 1,                 //月份 
+        "d+": this.getDate(),                    //日 
+        "h+": this.getHours(),                   //小时 
+        "m+": this.getMinutes(),                 //分 
+        "s+": this.getSeconds(),                 //秒 
+        "q+": Math.floor((this.getMonth() + 3) / 3), //季度 
+        "S": this.getMilliseconds()             //毫秒 
+      };
+      if (/(y+)/.test(fmt)) {
+        fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+      }
+      for (var k in o) {
+        if (new RegExp("(" + k + ")").test(fmt)) {
+          fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+        }
+      }
+      return fmt;
+    }
+
+    var z = new Vue({
+      el: '#app',
+      data: {
+        list: [],
+        ProjectName: "",
+        Password: "",
+        Title: "",
+        Text: "",
+        PageNum: 1,
+        Limit: 50,
+        TotalPageNum: 100,
+        TouchIsMove: false,
+        Test: "",
+        SaveObjList: [],
+        SaveObjListLen: 88.88,
+        Info: "",
+        SearchList: [],
+        Search: "",
+        SearchListLen: "",
+        Encrypt: false,
+      },
+      methods: {
+        Refresh: function () {
+          var jsonstr = localStorage.getItem("ProjectName:" + this.ProjectName);
+          if (jsonstr == null) {
+            this.Info = "项目不存在";
+            this.SaveObjList = [];
+            console.log("项目不存在")
+          } else {
+            // results =BASE64.urlsafe_decode(jsonstr)
+            var results = jsonstr;
+            var obj = JSON.parse(results);
+            if (obj.Password == this.Password) {
+              this.SaveObjList = obj.data;
+              this.Info = "";
+              console.log("密码正确")
+            } else {
+              this.Info = "密码不正确";
+              this.SaveObjList = [];
+              console.log("密码不正确")
+            }
+          }
+
+          this.SaveObjListLen = this.SaveObjList.length
+          console.log(new Date().format("yyyy-MM-dd hh:mm:ss"), "刷新", "ProjectName：" + this.ProjectName, "length=" + this.SaveObjList.length, jsonstr == null ? jsonstr : jsonstr.length)
+
+        },
+        Set: function () {
+          var el = event.currentTarget;
+          if ($(el).val() == "添加") {
+            $(".Set").show();
+            $(el).val("关闭");
+          } else {
+            $(".Set").hide();
+            $(el).val("添加");
+          }
+        },
+        Save: function () {
+          var SaveObj = {};
+          SaveObj.Text = (this.Text)
+          SaveObj.Title = this.Title
+          SaveObj.Time = new Date().format("yyyy-MM-dd hh:mm:ss");
+          this.SaveObjList.unshift(SaveObj);
+          var jsonstr = JSON.stringify({ Password: this.Password, data: this.SaveObjList });
+          var results = jsonstr;
+          localStorage.setItem("ProjectName:" + this.ProjectName, results);
+        },
+
+        GetMore: function (e) {
+          var el = event.currentTarget;
+          console.log($(el).parents(".item").find(".morebtn").html())
+
+          if ($(el).parents(".item").find(".morebtn").html() == "详情") {
+            $(el).parents(".item").find(".text_notmore").hide();
+            $(el).parents(".item").find(".text_more").show();
+            $(el).parents(".item").addClass("more")
+            $(el).parents(".item").find(".morebtn").html("⬆收起")
+          } else {
+            $(el).parents(".item").find(".text_notmore").show();
+            $(el).parents(".item").find(".text_more").hide();
+            $(el).parents(".item").removeClass("more")
+            $(el).parents(".item").find(".morebtn").html("详情")
+
+          }
+
+        }
+        ,
+        DelInfo: function () {
+          var el = event.currentTarget;
+          var index = parseInt($(el).attr("id"));
+          //delElByIndex(this.SaveObjList, index);
+          this.SaveObjList.splice(index, 1)
+          var jsonstr = JSON.stringify({ Password: this.Password, data: this.SaveObjList });
+          //  var BASE64jsonstr = BASE64.urlsafe_encode(jsonstr);
+
+          var results = jsonstr;
+          localStorage.setItem("ProjectName:" + this.ProjectName, results);
+        }
+        ,
+
+        Watch: function () {//数据改变监听
+
+          this.$watch("Search", function (newValue, oldValue) {
+            this.SearchList = listfilter(this.SaveObjList, this.Search);
+            if (this.Search == "") {
+              $(".SaveObjList").show();
+              $(".SearchList").hide();
+              this.SearchListLen = "";
+            } else {
+              $(".SaveObjList").hide();
+              $(".SearchList").show();
+              this.SearchListLen = this.SearchList.length + "条数据";
+            }
+
+          })
+
+          this.$watch("SaveObjList", function (newValue, oldValue) {
+
+            this.SaveObjListLen = this.SaveObjList.length;
+            this.SearchList = listfilter(this.SaveObjList, this.Search);
+            if (this.Search == "") {
+              $(".SaveObjList").show();
+              $(".SearchList").hide();
+              this.SearchListLen = "";
+            } else {
+              $(".SaveObjList").hide();
+              $(".SearchList").show();
+              this.SearchListLen = this.SearchList.length + "条数据";
+            }
+            console.log(this.SaveObjListLen, this.SearchListLen)
+
+          })
+
+          this.$watch("SaveObjListLen", function (newValue, oldValue) {
+
+            console.log(newValue, oldValue)
+
+          })
+
+
+
+        },
+
+        touchstart(e) {
+          // 如果你要阻止点击事件，请反注释下一行代码
+          // e.preventDefault()
+          this.startX = e.touches[0].clientX
+          this.startY = e.touches[0].clientY
+          this.TouchIsMove = true;
+        },
+        touchmove(e) {
+          // e.preventDefault()
+
+          this.moveX = e.touches[0].clientX
+          this.moveY = e.touches[0].clientY
+          // this.startX - this.moveX <= 0 ? console.log('你在往右滑') : console.log('你在往左滑')
+          if (this.TouchIsMove) {
+            // this.Test = "this.startX - this.moveX =" + (this.startX - this.moveX) + "  |Math.abs(this.startY - this.moveY) =" + Math.abs(this.startY - this.moveY)
+            if (this.startX - this.moveX <= -50 && Math.abs(this.startY - this.moveY) < 10) { // 右滑触发
+              // do something
+              console.log('你在往右滑')
+              if (this.PageNum > 1) {
+                this.PageNum--;
+              }
+              this.Refresh();
+              this.TouchIsMove = false;
+            }
+            if (this.startX - this.moveX >= 50 && Math.abs(this.startY - this.moveY) < 10) {
+              // do something
+              console.log('你在往左滑')
+
+              if (this.PageNum < this.TotalPageNum) {
+                this.PageNum++;
+              }
+              this.Refresh();
+              this.TouchIsMove = false;
+            }
+          }
+        }
+
+
+      },
+      created: function () {
+        // $(".Set").hide();
+        $(".text_more").hide();
+        this.ProjectName = localStorage.getItem("ProjectName")
+        this.Password = localStorage.getItem("Password") == null ? "" : localStorage.getItem("Password")
+        this.Refresh();
+        this.Watch();
+      },
+      updated: function () {
+        console.log('updated');
+        if (this.ProjectName != localStorage.getItem("ProjectName")) {
+          localStorage.setItem("ProjectName", this.ProjectName);
+          this.Refresh();
+        }
+        if (this.Password != localStorage.getItem("Password")) {
+          localStorage.setItem("Password", this.Password);
+          this.Refresh();
+        }
+        if (this.Limit != localStorage.getItem("Limit")) {
+          localStorage.setItem("Limit", this.Limit);
+        }
+
+
+
+      }
+    })
+    // 字数限制30字,超出不显示
+    function fontNumber(date, len) {
+      const length = date.length
+      if (length > len) {
+        var str = ''
+        str = date.substring(0, len) + '...'
+        return str
+      } else {
+        return date
+      }
+    }
 
 
 
